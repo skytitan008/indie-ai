@@ -39,19 +39,25 @@
 - Python 3.12+
 - Linux / Windows / macOS
 - 无需 GPU（可选加速）
+- **桌面版**: Node.js 16+ (可选)
 
 ### 安装依赖
 
 ```bash
 # 克隆项目
-git clone https://github.com/YOUR_USERNAME/independent-ai-mvp.git
-cd independent-ai-mvp
+git clone https://github.com/skytitan008/indie-ai.git
+cd indie-ai
 
 # 安装依赖
 pip install -r requirements.txt
 
 # 可选：安装额外工具
 pip install black pytest  # 用于真实任务执行
+
+# 可选：桌面版依赖
+cd desktop
+npm install
+cd ..
 ```
 
 ### 运行演示
@@ -62,6 +68,10 @@ pip install black pytest  # 用于真实任务执行
 
 # 方式二：直接运行 Python
 python3 demo/综合实验.py
+
+# 方式三：桌面版（跨平台 GUI）
+cd desktop
+./start.sh  # 或 npm start
 ```
 
 ### Web 可视化
@@ -79,7 +89,7 @@ http://localhost:8000
 ## 📁 项目结构
 
 ```
-independent-ai-mvp/
+indie-ai/
 ├── src/                        # 核心源代码
 │   ├── agent.py                # IndependentAgent 主类
 │   ├── executor.py             # 真实任务执行器
@@ -107,6 +117,15 @@ independent-ai-mvp/
 │   ├── index.html              # 主页面
 │   ├── app.js                  # 前端逻辑
 │   └── ...
+│
+├── desktop/                    # 🆕 桌面版 (Electron)
+│   ├── src/
+│   │   ├── main.js             # Electron 主进程
+│   │   ├── preload.js          # 预加载脚本
+│   │   └── index.html          # 桌面界面
+│   ├── assets/                 # 资源文件
+│   ├── package.json            # Node.js 配置
+│   └── README.md               # 桌面版文档
 │
 ├── docs/                       # 文档
 │   ├── 使用教程.md
@@ -206,6 +225,30 @@ python3 start_web.py
 - ✅ 成功率柱状图
 - 📊 实时数据统计
 - 🌙 深色模式切换
+
+### 6. 🆕 桌面版（Electron）
+
+跨平台桌面应用：
+
+```bash
+cd desktop
+./start.sh  # 或 npm start
+```
+
+**功能**:
+- 🖥️ 独立窗口运行
+- 🔔 系统托盘 + 通知
+- ⚡ 一键运行实验
+- 📊 实时统计面板
+- 📝 实验日志导出
+- 🌐 支持 Windows/macOS/Linux
+
+**打包可执行文件**:
+```bash
+cd desktop
+npm install
+npm run build  # 或 npm run build:win
+```
 
 ---
 

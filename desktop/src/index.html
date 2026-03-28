@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Indie AI Desktop - 独立思考 AI 系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* 标题栏 */
+    .title-bar {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .title-bar h1 {
+      font-size: 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+    }
+
+    .status-bar {
+      display: flex;
+      gap: 20px;
+      font-size: 14px;
+      color: #a0a0a0;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* 主容器 */
+    .container {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      padding: 20px;
+      height: calc(100vh - 70px);
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #667eea;
+    }
+
+    .experiment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .experiment-btn {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      color: #fff;
+      padding: 12px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .experiment-btn:hover {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
+      transform: translateX(5px);
+    }
+
+    .experiment-btn:active {
+      transform: translateX(2px);
+    }
+
+    .experiment-btn.running {
+      background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+      animation: running-pulse 1.5s infinite;
+    }
+
+    @keyframes running-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .section-title {
+      font-size: 16px;
+      margin: 20px 0 10px 0;
+      color: #a0a0a0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+    }
+
+    /* 主内容区 */
+    .main-content {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 20px;
+      overflow: hidden;
+    }
+
+    /* 统计卡片 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #a0a0a0;
+    }
+
+    /* 输出控制台 */
+    .console-panel {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .console-header {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 12px 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .console-title {
+      font-size: 14px;
+      color: #a0a0a0;
+    }
+
+    .console-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .console-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .console-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .console-output {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .console-line {
+      margin-bottom: 5px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .console-line.stdout {
+      color: #4ade80;
+    }
+
+    .console-line.stderr {
+      color: #ef4444;
+    }
+
+    .console-line.info {
+      color: #60a5fa;
+    }
+
+    .console-line.system {
+      color: #f59e0b;
+      font-style: italic;
+    }
+
+    /* 滚动条 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* 欢迎界面 */
+    .welcome-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      color: #a0a0a0;
+    }
+
+    .welcome-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .welcome-title {
+      font-size: 28px;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .welcome-subtitle {
+      font-size: 16px;
+      margin-bottom: 30px;
+    }
+
+    .welcome-tip {
+      background: rgba(102, 126, 234, 0.1);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      padding: 15px 25px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 标题栏 -->
+  <div class="title-bar">
+    <h1>🚀 Indie AI Desktop</h1>
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="status-dot"></div>
+        <span id="python-version">检测中...</span>
+      </div>
+      <div class="status-item">
+        <span id="clock">--:--:--</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主容器 -->
+  <div class="container">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+      <h2>⚡ 快速启动</h2>
+      <div class="experiment-list">
+        <button class="experiment-btn" onclick="runExperiment('综合实验.py')" data-script="综合实验.py">
+          🎯 综合实验
+        </button>
+        <button class="experiment-btn" onclick="runExperiment('真实任务执行.py')" data-script="真实任务执行.py">
+          💼 真实任务执行
+        </button>
+        <button class="experiment-btn" onclick="runExperiment('长期学习实验.py')" data-script="长期学习实验.py">
+          📈 长期学习实验
+        </button>
+        <button class="experiment-btn" onclick="runExperiment('SARSA 对比实验.py')" data-script="SARSA 对比实验.py">
+          🆚 SARSA 对比
+        </button>
+        <button class="experiment-btn" onclick="runExperiment('多 Agent 协作演示.py')" data-script="多 Agent 协作演示.py">
+          🤖 多 Agent 协作
+        </button>
+      </div>
+
+      <div class="section-title">📊 数据可视化</div>
+      <div class="experiment-list">
+        <button class="experiment-btn" onclick="loadWebInterface()">
+          🌐 Web 可视化界面
+        </button>
+      </div>
+
+      <div class="section-title">📁 项目信息</div>
+      <div style="font-size: 13px; color: #a0a0a0; line-height: 1.8;">
+        <div>版本：v1.0.0</div>
+        <div>路径：independent-ai-mvp</div>
+        <div>GitHub: skytitan008/indie-ai</div>
+      </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 统计卡片 -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-experiments">0</div>
+          <div class="stat-label">已运行实验</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-success">0</div>
+          <div class="stat-label">成功次数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-failures">0</div>
+          <div class="stat-label">失败次数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-uptime">0h</div>
+          <div class="stat-label">运行时长</div>
+        </div>
+      </div>
+
+      <!-- 控制台面板 -->
+      <div class="console-panel">
+        <div class="console-header">
+          <div class="console-title">📋 实验输出</div>
+          <div class="console-actions">
+            <button class="console-btn" onclick="clearConsole()">清空</button>
+            <button class="console-btn" onclick="exportLog()">导出日志</button>
+          </div>
+        </div>
+        <div class="console-output" id="console-output">
+          <div class="welcome-panel">
+            <div class="welcome-icon">🎉</div>
+            <div class="welcome-title">欢迎使用 Indie AI Desktop!</div>
+            <div class="welcome-subtitle">不依赖大模型的独立思考 AI 系统</div>
+            <div class="welcome-tip">
+              💡 提示：点击左侧实验按钮开始运行<br>
+              实验输出将显示在这里
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 状态统计
+    let stats = {
+      experiments: 0,
+      success: 0,
+      failures: 0,
+      startTime: Date.now(),
+    };
+
+    // 时钟
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+      document.getElementById('clock').textContent = timeStr;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 获取 Python 版本
+    async function initPythonVersion() {
+      if (window.electronAPI) {
+        const version = await window.electronAPI.getPythonVersion();
+        document.getElementById('python-version').textContent = version;
+      } else {
+        document.getElementById('python-version').textContent = 'Python 3.12+';
+      }
+    }
+    initPythonVersion();
+
+    // 运行实验
+    let currentRunningBtn = null;
+
+    async function runExperiment(scriptName) {
+      const btn = document.querySelector(`[data-script="${scriptName}"]`);
+      
+      // 更新按钮状态
+      if (currentRunningBtn) {
+        currentRunningBtn.classList.remove('running');
+        currentRunningBtn.textContent = currentRunningBtn.textContent.replace('⏳ ', '');
+      }
+      
+      if (btn) {
+        btn.classList.add('running');
+        btn.textContent = '⏳ ' + btn.textContent;
+        currentRunningBtn = btn;
+      }
+
+      // 清空控制台
+      clearConsole();
+      addConsoleLine(`🚀 启动实验：${scriptName}`, 'system');
+      addConsoleLine(`⏰ 时间：${new Date().toLocaleString('zh-CN')}`, 'info');
+      addConsoleLine('─'.repeat(60), 'info');
+
+      // 运行实验
+      if (window.electronAPI) {
+        window.electronAPI.runExperiment(scriptName);
+        
+        // 监听输出
+        window.electronAPI.onExperimentOutput((data) => {
+          const className = data.type === 'stdout' ? 'stdout' : 'stderr';
+          addConsoleLine(data.data, className);
+        });
+
+        // 监听完成
+        window.electronAPI.onExperimentComplete((data) => {
+          addConsoleLine('─'.repeat(60), 'info');
+          if (data.code === 0) {
+            addConsoleLine(`✅ 实验完成！退出码：${data.code}`, 'stdout');
+            stats.success++;
+            document.getElementById('stat-success').textContent = stats.success;
+          } else {
+            addConsoleLine(`❌ 实验失败！退出码：${data.code}`, 'stderr');
+            stats.failures++;
+            document.getElementById('stat-failures').textContent = stats.failures;
+          }
+          stats.experiments++;
+          document.getElementById('stat-experiments').textContent = stats.experiments;
+          
+          if (currentRunningBtn) {
+            currentRunningBtn.classList.remove('running');
+            currentRunningBtn.textContent = currentRunningBtn.textContent.replace('⏳ ', '');
+            currentRunningBtn = null;
+          }
+        });
+      } else {
+        addConsoleLine('⚠️ 非 Electron 环境，无法运行实验', 'stderr');
+        if (currentRunningBtn) {
+          currentRunningBtn.classList.remove('running');
+          currentRunningBtn.textContent = currentRunningBtn.textContent.replace('⏳ ', '');
+          currentRunningBtn = null;
+        }
+      }
+    }
+
+    // 添加控制台输出
+    function addConsoleLine(text, type = 'stdout') {
+      const output = document.getElementById('console-output');
+      const welcomePanel = output.querySelector('.welcome-panel');
+      if (welcomePanel) {
+        welcomePanel.style.display = 'none';
+      }
+
+      const line = document.createElement('div');
+      line.className = `console-line ${type}`;
+      line.textContent = text;
+      output.appendChild(line);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    // 清空控制台
+    function clearConsole() {
+      const output = document.getElementById('console-output');
+      output.innerHTML = '';
+    }
+
+    // 导出日志
+    function exportLog() {
+      const output = document.getElementById('console-output');
+      const text = output.innerText;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `indie-ai-log-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // 加载 Web 界面
+    function loadWebInterface() {
+      addConsoleLine('🌐 打开 Web 可视化界面...', 'info');
+      addConsoleLine('提示：请运行 start_web.py 后在浏览器访问 http://localhost:8000', 'info');
+      
+      // 可以集成 WebView 或打开浏览器
+      if (window.electronAPI) {
+        // 未来可以集成 WebView
+      }
+    }
+
+    // 更新运行时长
+    setInterval(() => {
+      const elapsed = Math.floor((Date.now() - stats.startTime) / 1000);
+      const hours = Math.floor(elapsed / 3600);
+      const minutes = Math.floor((elapsed % 3600) / 60);
+      document.getElementById('stat-uptime').textContent = `${hours}h${minutes}m`;
+    }, 1000);
+
+    // 键盘快捷键
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+L 清空控制台
+      if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        clearConsole();
+      }
+      // Ctrl+S 导出日志
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        exportLog();
+      }
+    });
+  </script>
+</body>
+</html>
