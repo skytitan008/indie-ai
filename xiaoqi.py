@@ -1,55 +1,87 @@
 #!/usr/bin/env python3
 """
-小七 - 自主进化 AI 交互界面
+小七 - 真正的自主 AI
 
-和你聊天、帮你编程、自我学习
+启动方式:
+    python3 xiaoqi.py              # 交互模式
+    python3 xiaoqi.py --auto 目标   # 自主运行模式
+    python3 xiaoqi.py --help       # 帮助
 """
 
 import sys
+import argparse
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).parent.parent
+PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
-
-from src.autonomy.core import AutonomousAI
-
-
-def show_welcome():
-    """显示欢迎界面"""
-    print("\n╔════════════════════════════════════════════════════════╗")
-    print("║         🤖 小七 - 你的 AI 伙伴                          ║")
-    print("╚════════════════════════════════════════════════════════╝\n")
-    
-    print("我可以:")
-    print("   💬 和你聊天")
-    print("   💻 帮你写代码（C/Python/Java/JS 等 10 种语言）")
-    print("   📚 自主学习新知识")
-    print("   🎯 安装新技能")
-    print("   📷 控制硬件（摄像头/麦克风）")
-    print("   📊 监控系统状态")
-    
-    print("\n命令:")
-    print("   chat      - 聊天模式")
-    print("   learn     - 学习模式")
-    print("   code      - 编程帮助")
-    print("   status    - 显示状态")
-    print("   skills    - 查看技能")
-    print("   help      - 帮助")
-    print("   quit      - 退出")
-    print("\n直接输入也可以和我聊天哦！\n")
 
 
 def main():
-    """主程序"""
-    show_welcome()
+    parser = argparse.ArgumentParser(
+        description="小七 - 真正的自主 AI",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+示例:
+  python3 xiaoqi.py                    # 交互模式
+  python3 xiaoqi.py --auto "开发视频生成系统"  # 自主运行
+  python3 xiaoqi.py --auto "学习 Python" --duration 60  # 运行 60 秒
+        """
+    )
+    
+    parser.add_argument(
+        '--auto', '-a',
+        type=str,
+        help='启动自主运行模式，后面跟目标'
+    )
+    
+    parser.add_argument(
+        '--duration', '-d',
+        type=int,
+        default=0,
+        help='自主运行时长（秒），0=无限'
+    )
+    
+    parser.add_argument(
+        '--quiet', '-q',
+        action='store_true',
+        help='安静模式（减少输出）'
+    )
+    
+    args = parser.parse_args()
+    
+    if args.auto:
+        # 自主运行模式
+        run_autonomous(args.auto, args.duration, args.quiet)
+    else:
+        # 交互模式
+        run_interactive()
+
+
+def run_interactive():
+    """交互模式"""
+    from src.interaction.chat.conversation import ChatBot
+    from src.autonomy.core import AutonomousAI
+    
+    print("\n╔════════════════════════════════════════════════════════╗")
+    print("║         🤖 小七 - 自主进化 AI                          ║")
+    print("╚════════════════════════════════════════════════════════╝\n")
     
     # 创建 AI
     ai = AutonomousAI(name="小七")
-    
-    # 初始化
     ai.initialize()
     
-    print("\n✅ 准备就绪！\n")
+    # 创建聊天机器人
+    bot = ChatBot(ai)
+    
+    print("💡 提示:")
+    print("   • 开启自主模式 - 让我自己决定做什么")
+    print("   • 思考 - 看我的决策过程")
+    print("   • 自主状态 - 查看当前状态")
+    print("   • 关闭自主模式 - 退出自主模式")
+    print("   • 帮我规划 [任务] - 自动规划任务")
+    print("   • 执行 - 执行任务")
+    print("   • 任务状态 - 查看任务")
+    print("   • quit/exit - 退出\n")
     
     while True:
         try:
@@ -58,109 +90,60 @@ def main():
             if not user_input:
                 continue
             
-            cmd = user_input.lower()
-            
-            if cmd in ['quit', 'exit', 'q']:
-                print("小七：再见！随时欢迎回来！👋")
+            if user_input.lower() in ['quit', 'exit', 'q']:
+                print("\n👋 再见！")
                 break
             
-            elif cmd == 'chat':
-                print("\n💬 聊天模式（输入 quit 返回）\n")
-                while True:
-                    try:
-                        text = input("你：").strip()
-                        if text.lower() in ['quit', 'q', 'exit']:
-                            break
-                        if not text:
-                            continue
-                        print(f"小七：{ai.chat(text)}\n")
-                    except KeyboardInterrupt:
-                        break
-                print("\n返回主菜单\n")
+            # 处理自主运行命令
+            if user_input.startswith('自主运行'):
+                goal = user_input.replace('自主运行', '').strip()
+                if not goal:
+                    goal = "自主工作"
+                print(f"\n🚀 开始自主运行：{goal}")
+                run_autonomous(goal, 0, False)
+                continue
             
-            elif cmd == 'learn':
-                print("\n📚 学习模式（输入 quit 返回）\n")
-                while True:
-                    try:
-                        topic = input("想学什么：").strip()
-                        if topic.lower() in ['quit', 'q', 'exit']:
-                            break
-                        if not topic:
-                            continue
-                        ai.learn(topic, category="general")
-                        print()
-                    except KeyboardInterrupt:
-                        break
-                print("\n返回主菜单\n")
-            
-            elif cmd == 'code':
-                print("\n💻 编程帮助（输入 quit 返回）\n")
-                print("我可以帮你:")
-                print("   - 写代码")
-                print("   - 审查代码")
-                print("   - 调试 Bug")
-                print("   - 优化性能")
-                print("   - 写测试")
-                print("\n请描述你的需求:\n")
-                
-                while True:
-                    try:
-                        req = input("需求：").strip()
-                        if req.lower() in ['quit', 'q', 'exit']:
-                            break
-                        if not req:
-                            continue
-                        
-                        # 生成代码帮助
-                        response = f"""好的！我来帮你。
-
-关于你的需求：{req}
-
-我建议：
-1. 先明确具体功能
-2. 选择编程语言
-3. 设计实现方案
-
-你想用什么语言？我可以写 C、Python、Java、JavaScript 等。"""
-                        print(f"小七：{response}\n")
-                    except KeyboardInterrupt:
-                        break
-                print("\n返回主菜单\n")
-            
-            elif cmd == 'status':
-                ai.show_status()
-            
-            elif cmd == 'skills':
-                skills = ai.learner.knowledge_base.get_skills()
-                print(f"\n🎯 当前技能 ({len(skills)}个):\n")
-                for skill in skills:
-                    print(f"   • {skill['name']} - {skill['description']}")
-                print()
-            
-            elif cmd == 'help':
-                print("""
-可用命令:
-   chat      - 聊天模式
-   learn     - 学习新知识
-   code      - 编程帮助
-   status    - 显示 AI 状态
-   skills    - 查看技能列表
-   help      - 显示帮助
-   quit      - 退出程序
-
-也可以直接输入文字和我聊天！
-""")
-            
-            else:
-                # 直接聊天
-                response = ai.chat(user_input)
-                print(f"小七：{response}\n")
+            response = bot.chat(user_input)
+            print(f"\n小七：{response}\n")
         
         except KeyboardInterrupt:
-            print("\n\n小七：再见！👋")
+            print("\n\n👋 再见！")
             break
         except Exception as e:
-            print(f"小七：抱歉，出了点问题：{e}\n")
+            print(f"\n❌ 错误：{e}\n")
+
+
+def run_autonomous(goal: str, duration: int = 0, quiet: bool = False):
+    """自主运行模式"""
+    from src.autonomy.true_autonomy import TrueAutonomousSystem
+    from src.autonomy.core import AutonomousAI
+    import time
+    
+    print("\n╔════════════════════════════════════════════════════════╗")
+    print("║         🚀 小七 - 真正的自主运行                      ║")
+    print("╚════════════════════════════════════════════════════════╝\n")
+    
+    # 创建 AI
+    ai = AutonomousAI(name="小七")
+    ai.initialize()
+    
+    # 创建自主系统
+    auto_system = TrueAutonomousSystem(ai)
+    
+    # 日志回调
+    def on_log(msg):
+        if not quiet or msg.startswith(('\n', '╔', '║', '╚', '═', '[', '🚀', '🎯', '⏹️', '📊', '✅', '📚', '🔄', '💭')):
+            print(msg)
+    
+    auto_system.on_log = on_log
+    
+    # 启动
+    auto_system.start(goal, background=False)
+    
+    # 如果设置了时长，运行指定时间后停止
+    if duration > 0:
+        time.sleep(duration)
+        auto_system.stop()
 
 
 if __name__ == '__main__':
