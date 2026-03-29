@@ -126,6 +126,10 @@ class MemoryDatabase:
         self.connect()
         cursor = self.conn.cursor()
         
+        # 序列化 deadline 和 dependencies
+        deadline_str = task.deadline.isoformat() if task.deadline else None
+        deps_str = json.dumps(task.dependencies) if task.dependencies else '[]'
+        
         cursor.execute('''
             INSERT OR REPLACE INTO tasks 
             (id, name, description, priority, estimated_time, actual_time, 
@@ -138,13 +142,15 @@ class MemoryDatabase:
             task.priority,
             task.estimated_time,
             task.actual_time,
-            task.deadline.isoformat() if task.deadline else None,
-            json.dumps(task.dependencies),
+            deadline_str,
+            deps_str,
             task.status.value,
             task.created_at.isoformat(),
             task.started_at.isoformat() if task.started_at else None,
             task.completed_at.isoformat() if task.completed_at else None
         ))
+        
+        self.conn.commit()
         
         self.conn.commit()
         self.close()
