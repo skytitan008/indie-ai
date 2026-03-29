@@ -195,21 +195,44 @@ class CodeGenerator:
     def generate(self, language: str, task: str) -> Optional[str]:
         """生成代码"""
         lang = language.lower()
-        task = task.lower()
+        task_lower = task.lower()
         
         if lang not in self.templates:
             return None
         
-        # 匹配任务
-        for key, code in self.templates[lang].items():
-            if key in task:
-                return code
+        # 匹配任务 - 更灵活的匹配
+        task_map = {
+            'quick': 'quick_sort',
+            'sort': 'quick_sort',
+            '排序': 'quick_sort',
+            'hello': 'hello_world',
+            'world': 'hello_world',
+            'function': 'function',
+            '函数': 'function',
+            'http': 'http_server',
+            'server': 'http_server',
+            'file': 'file_read',
+            'read': 'file_read',
+            'class': 'class_example',
+            '类': 'class_example',
+            'async': 'async_await',
+            'await': 'async_await',
+            'linked': 'linked_list',
+            'list': 'linked_list',
+            '链表': 'linked_list',
+            'vector': 'vector_example',
+            'goroutine': 'goroutine',
+            'ownership': 'ownership',
+        }
+        
+        for keyword, template_key in task_map.items():
+            if keyword in task_lower:
+                code = self.templates[lang].get(template_key)
+                if code:
+                    return code
         
         # 默认返回 hello world
-        if 'hello' in task or 'world' in task:
-            return self.templates[lang].get('hello_world')
-        
-        return None
+        return self.templates[lang].get('hello_world')
     
     def get_supported_languages(self) -> list:
         """获取支持的语言"""
