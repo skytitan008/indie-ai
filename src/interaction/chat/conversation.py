@@ -89,6 +89,26 @@ class ChatBot:
                 return self._handle_autonomous_mode(text)
             return "自主模式需要 AI 实例"
         
+        # 状态查询
+        elif any(w in t for w in ['状态', '进度', 'status', 'progress']):
+            if self.ai:
+                return self._handle_auto_status()
+            return "当前没有任务"
+        
+        # 暂停
+        elif any(w in t for w in ['暂停', 'pause', '停下', '停止']):
+            if self.ai and hasattr(self.ai, 'disable_autonomous_mode'):
+                self.ai.disable_autonomous_mode()
+                return "⏸️  已暂停自主运行。输入'继续'恢复"
+            return "好的，已暂停"
+        
+        # 继续
+        elif any(w in t for w in ['继续', 'resume', '恢复']):
+            if self.ai and hasattr(self.ai, 'enable_autonomous_mode'):
+                self.ai.enable_autonomous_mode()
+                return "▶️  已恢复自主运行"
+            return "好的，继续"
+        
         # 思考/决策
         elif any(w in t for w in ['思考', 'think', '决定', 'decide']):
             if self.ai and hasattr(self.ai, 'think'):
@@ -121,11 +141,12 @@ class ChatBot:
                 
                 return self._handle_task_planning(task_desc)
         
-        # 开发/创建类任务（自动规划）
-        elif any(w in t for w in ['开发', '创建', 'create', 'build', '做一个']):
+        # 开发/创建类任务（自动规划并执行）
+        elif any(w in t for w in ['开发', '创建', 'create', 'build', '做一个', '调研', '研究', '分析']):
             if self.ai:
                 task_desc = text.replace('帮我', '').strip()
-                return self._handle_task_planning(task_desc)
+                # 自动规划并启动自主执行
+                return self._handle_auto_execute(task_desc)
         
         # 问候
         elif any(w in t for w in ['你好', '嗨', 'hello', 'hi']):
@@ -217,6 +238,35 @@ class ChatBot:
         except Exception as e:
             return f"抱歉，执行失败：{e}"
     
+    def _handle_auto_status(self) -> str:
+        """处理自主状态查询"""
+        try:
+            # 自主状态
+            if hasattr(self.ai, 'get_autonomy_status'):
+                status = self.ai.get_autonomy_status()
+                response = f"""🧠 自主状态:
+   模式：{status['mode']}
+   精力：{status['energy']}
+   决策次数：{status['decisions']}
+   好奇心：{status['motivation'].curiosity:.0f}
+   成就感：{status['motivation'].achievement:.0f}
+
+"""
+            else:
+                response = ""
+            
+            # 任务状态
+            if hasattr(self.ai, 'get_task_status'):
+                task_status = self.ai.get_task_status()
+                response += f"""📊 任务状态:
+   已完成：{task_status['by_status'].get('completed', 0)}
+   待执行：{task_status['by_status'].get('pending', 0)}
+   可执行：{task_status['ready']}"""
+            
+            return response
+        except Exception as e:
+            return f"抱歉，查询失败：{e}"
+    
     def _handle_task_status(self) -> str:
         """处理任务状态查询"""
         try:
@@ -261,6 +311,51 @@ class ChatBot:
             pass
         
         return self.responses['coding']
+    
+    def _handle_auto_execute(self, task_desc: str) -> str:
+        """处理自动执行请求 - 真正的自主！"""
+        try:
+            # 1. 规划任务
+            if hasattr(self.ai, 'plan_task'):
+                self.ai.plan_task(task_desc, "用户请求", "high")
+            
+            # 2. 开启自主模式
+            if hasattr(self.ai, 'enable_autonomous_mode'):
+                self.ai.enable_autonomous_mode()
+            
+            # 3. 执行几次自主行动
+            results = []
+            for i in range(3):
+                if hasattr(self.ai, 'think'):
+                    thought = self.ai.think()
+                    results.append(thought[:200])
+                
+                # 短暂延迟
+                import time
+                time.sleep(0.3)
+            
+            # 4. 返回结果
+            response = f"""🚀 好的！我开始自主工作：{task_desc}
+
+"""
+            for i, result in enumerate(results, 1):
+                response += f"[{i}] {result}\n\n"
+            
+            status = self.ai.get_task_status()
+            response += f"""📊 当前进度:
+   已完成：{status['by_status'].get('completed', 0)}
+   待执行：{status['by_status'].get('pending', 0)}
+   可执行：{status['ready']}
+
+💡 我会继续自主工作，你可以:
+   • 输入"状态"查看进度
+   • 输入"暂停"让我停下
+   • 或者继续做其他事，不用管我"""
+            
+            return response
+            
+        except Exception as e:
+            return f"抱歉，自主执行出错：{e}"
     
     def start_chat(self):
         print(f"\n💬 聊天模式已启动（输入 quit 退出）\n")
