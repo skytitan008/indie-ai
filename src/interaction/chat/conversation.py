@@ -96,7 +96,7 @@ class ChatBot:
             return "我在思考..."
         
         # 任务状态查询（优先级高）
-        if any(w in t for w in ['任务状态', 'task status', '还有多少任务', '查看任务']):
+        elif any(w in t for w in ['任务状态', 'task status', '还有多少任务', '查看任务']):
             if self.ai:
                 return self._handle_task_status()
             return "当前没有任务"
@@ -162,11 +162,13 @@ class ChatBot:
             if hasattr(self.ai, 'enable_autonomous_mode'):
                 self.ai.enable_autonomous_mode()
                 return "🧠 已开启自主模式！我会自己决定做什么。\n\n输入'思考'看我的决策过程"
+            return "❌ 不支持自主模式"
         
         elif any(w in text for w in ['关闭', 'disable', 'off', '退出']):
             if hasattr(self.ai, 'disable_autonomous_mode'):
                 self.ai.disable_autonomous_mode()
                 return "⏸️  已退出自主模式"
+            return "❌ 不支持自主模式"
         
         elif any(w in text for w in ['状态', 'status']):
             if hasattr(self.ai, 'get_autonomy_status'):
@@ -177,6 +179,7 @@ class ChatBot:
 决策次数：{status['decisions']}
 好奇心：{status['motivation'].curiosity:.0f}
 成就感：{status['motivation'].achievement:.0f}"""
+            return "❌ 无法获取状态"
         
         return "自主模式命令:\n- 开启自主模式\n- 关闭自主模式\n- 自主状态\n- 思考"
     

@@ -71,7 +71,7 @@ def run_interactive():
     ai.initialize()
     
     # 创建聊天机器人
-    bot = ChatBot(ai)
+    bot = ChatBot(ai_instance=ai)
     
     print("💡 提示:")
     print("   • 开启自主模式 - 让我自己决定做什么")
