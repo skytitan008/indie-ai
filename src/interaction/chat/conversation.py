@@ -83,6 +83,18 @@ class ChatBot:
     def chat(self, text: str) -> str:
         t = text.lower()
         
+        # 自主模式相关
+        if any(w in t for w in ['自主', 'autonomous', '自己决定', '你自己做主']):
+            if self.ai:
+                return self._handle_autonomous_mode(text)
+            return "自主模式需要 AI 实例"
+        
+        # 思考/决策
+        elif any(w in t for w in ['思考', 'think', '决定', 'decide']):
+            if self.ai and hasattr(self.ai, 'think'):
+                return self.ai.think()[:500]  # 限制长度
+            return "我在思考..."
+        
         # 任务状态查询（优先级高）
         if any(w in t for w in ['任务状态', 'task status', '还有多少任务', '查看任务']):
             if self.ai:
@@ -143,6 +155,30 @@ class ChatBot:
         
         self.conversation.add_message(text, resp)
         return resp
+    
+    def _handle_autonomous_mode(self, text: str) -> str:
+        """处理自主模式请求"""
+        if any(w in text for w in ['开启', '启动', 'enable', 'on']):
+            if hasattr(self.ai, 'enable_autonomous_mode'):
+                self.ai.enable_autonomous_mode()
+                return "🧠 已开启自主模式！我会自己决定做什么。\n\n输入'思考'看我的决策过程"
+        
+        elif any(w in text for w in ['关闭', 'disable', 'off', '退出']):
+            if hasattr(self.ai, 'disable_autonomous_mode'):
+                self.ai.disable_autonomous_mode()
+                return "⏸️  已退出自主模式"
+        
+        elif any(w in text for w in ['状态', 'status']):
+            if hasattr(self.ai, 'get_autonomy_status'):
+                status = self.ai.get_autonomy_status()
+                return f"""🧠 自主状态:
+模式：{status['mode']}
+精力：{status['energy']}
+决策次数：{status['decisions']}
+好奇心：{status['motivation'].curiosity:.0f}
+成就感：{status['motivation'].achievement:.0f}"""
+        
+        return "自主模式命令:\n- 开启自主模式\n- 关闭自主模式\n- 自主状态\n- 思考"
     
     def _handle_task_planning(self, task_name: str) -> str:
         """处理任务规划"""

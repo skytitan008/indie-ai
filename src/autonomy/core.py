@@ -23,6 +23,7 @@ from src.interaction.chat.conversation import ChatBot, ConversationManager
 from src.interaction.voice.speech import TextToSpeech, VoiceInterface
 from src.planning.task_planner import TaskPlanner, TaskDecomposer, TaskExecutor, TaskPriority
 from src.interaction.chat.code_generator import CodeGenerator
+from src.autonomy.decision import AutonomousDecisionEngine, ActionType
 
 
 class AutonomousAI:
@@ -51,9 +52,13 @@ class AutonomousAI:
         # 代码生成器
         self.code_gen = CodeGenerator()
         
+        # 自主决策引擎
+        self.decision_engine = AutonomousDecisionEngine(ai_instance=self)
+        
         # 状态
-        self.mode = "idle"
+        self.mode = "idle"  # idle, autonomous, working, learning
         self.current_task = None
+        self.autonomous_mode = False
         
         print(f"\n╔════════════════════════════════════════════════════════╗")
         print(f"║         🤖 {self.name} - 自主进化 AI 已启动             ║")
@@ -298,6 +303,70 @@ class AutonomousAI:
             'total': len(all_tasks),
             'by_status': status_count,
             'ready': len(self.planner.get_ready_tasks())
+        }
+    
+    def enable_autonomous_mode(self):
+        """启用自主模式"""
+        self.autonomous_mode = True
+        self.mode = "autonomous"
+        print(f"\n🧠 {self.name} 进入自主模式")
+        print("   我会自己决定做什么，你可以随时打断我\n")
+    
+    def disable_autonomous_mode(self):
+        """禁用自主模式"""
+        self.autonomous_mode = False
+        self.mode = "idle"
+        print(f"\n⏸️  退出自主模式\n")
+    
+    def think(self) -> str:
+        """自主思考并决定下一步"""
+        if not self.autonomous_mode:
+            return "💭 思考中...（自主模式未启用）"
+        
+        # 自主决策
+        decision = self.decision_engine.decide_next_action()
+        
+        # 显示思考过程
+        thought = f"""💭 {self.name} 的思考:
+
+动机状态:
+   好奇心：{self.decision_engine.motivation.curiosity:.0f}
+   成就感：{self.decision_engine.motivation.achievement:.0f}
+   改进欲：{self.decision_engine.motivation.improvement:.0f}
+
+决策：{decision['action'].value}
+理由：{decision['reason']}
+效用：{decision['utility']:.3f}
+
+{self.decision_engine.execute_action(decision)}"""
+        
+        return thought
+    
+    def autonomous_loop(self, iterations: int = 5):
+        """自主循环（执行多次自主决策）"""
+        print(f"\n🔄 开始自主循环 ({iterations}次)\n")
+        
+        self.enable_autonomous_mode()
+        
+        for i in range(iterations):
+            print(f"\n[第{i+1}次决策]")
+            thought = self.think()
+            print(thought)
+            
+            import time
+            time.sleep(1)  # 模拟思考时间
+        
+        self.disable_autonomous_mode()
+        print("\n✅ 自主循环完成\n")
+    
+    def get_autonomy_status(self) -> Dict:
+        """获取自主状态"""
+        return {
+            'mode': self.mode,
+            'autonomous': self.autonomous_mode,
+            'energy': self.decision_engine.energy,
+            'motivation': self.decision_engine.motivation,
+            'decisions': len(self.decision_engine.action_history),
         }
 
 
