@@ -13,11 +13,15 @@
 ## 🌟 特性亮点
 
 - 🤖 **自主决策** - 基于效用函数的透明决策机制
-- 🧠 **经验学习** - Q-Learning + SARSA 双算法支持
-- 👥 **多 Agent 协作** - 智能任务分配与团队协作
+- 🧠 **经验学习** - Q-Learning + SARSA + Deep Q-Learning 三算法支持
+- 👥 **多 Agent 协作** - 合同网协议 + 谈判机制
 - 📊 **Web 可视化** - 浏览器实时查看学习曲线
 - 💼 **真实任务执行** - 自动格式化代码、运行测试、生成日报
 - 📈 **学习曲线分析** - 100 轮深度实验，观察 AI 成长
+- 🖥️ **桌面应用** - Electron 跨平台桌面版
+- 🔌 **VS Code 插件** - 编辑器深度集成
+- 🕸️ **WebSocket** - 实时状态推送
+- 📊 **任务依赖图** - 可视化任务关系
 
 ---
 
@@ -127,7 +131,16 @@ indie-ai/
 │   ├── package.json            # Node.js 配置
 │   └── README.md               # 桌面版文档
 │
+├── vscode-extension/         # 🆕 VS Code 插件
+│   ├── src/
+│   │   └── extension.ts      # 插件主入口
+│   ├── package.json          # 插件配置
+│   ├── tsconfig.json         # TypeScript 配置
+│   ├── README.md             # 插件文档
+│   └── INSTALL.md            # 安装指南
+│
 ├── docs/                       # 文档
+│   ├── Agent 谈判协议.md       # 🆕 谈判协议详解
 │   ├── 使用教程.md
 │   ├── 开发文档.md
 │   └── ...
@@ -210,7 +223,27 @@ python3 demo/多 Agent 协作演示.py
 - 智能任务分配
 - 动态负载均衡
 
-### 5. Web 可视化
+### 5. 🆕 Agent 谈判协议
+
+基于合同网协议的谈判系统：
+
+```bash
+python3 demo/Agent 谈判协议演示.py
+```
+
+**功能**:
+- 🤝 任务招标（Task Announcement）
+- 💰 投标（Bid）
+- 🏆 中标（Award）
+- 💬 多轮协商（Negotiation）
+- 📊 AIGC 视频工作流分配
+
+**应用场景**:
+- AIGC 视频生成（导演→编剧→分镜→视频）
+- 代码开发（TechLead→前端→后端→测试）
+- 文档编写（编辑→作者→审核→翻译）
+
+### 6. Web 可视化
 
 浏览器查看学习曲线：
 
@@ -226,7 +259,7 @@ python3 start_web.py
 - 📊 实时数据统计
 - 🌙 深色模式切换
 
-### 6. 🆕 桌面版（Electron）
+### 7. 🆕 桌面版（Electron）
 
 跨平台桌面应用：
 
@@ -249,6 +282,28 @@ cd desktop
 npm install
 npm run build  # 或 npm run build:win
 ```
+
+### 8. 🆕 VS Code 插件
+
+编辑器深度集成：
+
+```bash
+cd vscode-extension
+npm install
+npm run compile
+```
+
+**功能**:
+- 🔌 右键格式化代码
+- ⚡ 一键运行实验
+- 📝 自动生成日报
+- 📊 实时状态查看
+- 🎹 快捷键支持（Ctrl+Shift+I/E）
+
+**安装方式**:
+1. 开发模式：F5 启动调试
+2. 打包安装：`vsce package` + 从 VSIX 安装
+3. 配置项目路径即可使用
 
 ---
 
