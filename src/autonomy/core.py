@@ -19,6 +19,8 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.autonomy.learner import AutonomousLearner
 from src.hardware.controller import SystemMonitor, DeviceController, FileManager, NetworkManager
+from src.interaction.chat.conversation import ChatBot, ConversationManager
+from src.interaction.voice.speech import TextToSpeech, VoiceInterface
 
 
 class AutonomousAI:
@@ -35,8 +37,12 @@ class AutonomousAI:
         self.files = FileManager()
         self.network = NetworkManager()
         
+        # 交互模块
+        self.chat_bot = ChatBot(name)
+        self.tts = TextToSpeech()
+        
         # 状态
-        self.mode = "idle"  # idle, learning, working, self_improving
+        self.mode = "idle"
         self.current_task = None
         
         print(f"\n╔════════════════════════════════════════════════════════╗")
@@ -116,7 +122,20 @@ class AutonomousAI:
     def speak(self, text: str):
         """语音合成"""
         print(f"\n🔊 {self.name} 说：{text}")
-        self.devices.control_speaker("speak", text)
+        self.tts.speak(text)
+    
+    def chat(self, text: str) -> str:
+        """聊天"""
+        return self.chat_bot.chat(text)
+    
+    def start_chat(self):
+        """启动聊天模式"""
+        self.chat_bot.start_chat()
+    
+    def start_voice(self):
+        """启动语音模式"""
+        voice = VoiceInterface()
+        voice.start_voice_mode(self)
     
     def get_status(self) -> Dict:
         """获取 AI 状态"""
