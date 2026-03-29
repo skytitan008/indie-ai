@@ -405,37 +405,97 @@ pip install -r requirements-dev.txt  # 可选
 
 ---
 
+## 🆕 新功能 (Day 5)
+
+### CLI 命令行工具
+
+```bash
+# 运行实验
+python3 cli.py run learning
+
+# 查看状态
+python3 cli.py status
+
+# 查看统计
+python3 cli.py stats
+
+# 对比实验
+python3 cli.py compare learning --rounds 5
+
+# 启动 Web 界面
+python3 cli.py web
+
+# 启动桌面版
+python3 cli.py desktop
+```
+
+### 实验对比工具
+
+自动对比不同配置的效果：
+
+```bash
+python3 demo/实验对比演示.py
+```
+
+**支持对比**:
+- 学习率（0.01, 0.05, 0.1, 0.2, 0.5）
+- 折扣因子（0.8, 0.85, 0.9, 0.95, 0.99）
+- 探索率（0.1, 0.2, 0.3, 0.5, 0.8）
+- 决策权重（Balanced, Quality, Urgent）
+
+### WebSocket 实时推送
+
+实时推送实验数据到前端：
+
+```bash
+# 启动 WebSocket 服务器
+python3 -m src.websocket.server
+
+# 前端连接
+const ws = new WebSocket('ws://localhost:8765');
+```
+
+---
+
 ## 🗺️ 路线图
 
-### ✅ 已完成 (Day 1-3)
+### ✅ 已完成 (Day 1-5)
 - [x] MVP 架构与基础演示
 - [x] 学习验证（98% 完成率）
 - [x] 多 Agent 协作系统
 - [x] Web 可视化界面
 - [x] SARSA 算法实现
+- [x] Windows 桌面版（Electron）
+- [x] 实际应用集成（格式化/测试/日报）
+- [x] CLI 命令行工具
+- [x] 实验对比工具
+- [x] WebSocket 实时推送
 
-### 🎯 进行中 (Day 4-7)
-- [ ] Windows 桌面版（Electron）
-- [ ] 实际应用集成
+### 🎯 进行中 (Week 2)
+- [ ] 桌面版打包（可执行文件）
 - [ ] 任务依赖图分析
-- [ ] WebSocket 实时推送
-
-### 🔮 计划中 (Week 2+)
 - [ ] Deep Q-Learning
-- [ ] 更多学习算法
+- [ ] VS Code 插件集成
+
+### 🔮 计划中 (Week 3+)
 - [ ] Agent 谈判协议
+- [ ] 自动参数调优
 - [ ] 生产环境部署
+- [ ] 更多学习算法
 
 ---
 
 ## 📈 项目统计
 
-- **代码量**: 1.5MB+
-- **文件数**: 35+
-- **Python 文件**: 20+
-- **演示脚本**: 10+
-- **学习算法**: 2 个
-- **配置预设**: 5 种
+| 项目 | 数值 |
+|------|------|
+| **代码量** | 1.6MB+ |
+| **文件数** | 80+ |
+| **Python 模块** | 35+ |
+| **演示脚本** | 12+ |
+| **学习算法** | 2 个 |
+| **配置预设** | 5 种 |
+| **GitHub 提交** | 6+ |
 
 ---
 

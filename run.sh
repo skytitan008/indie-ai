@@ -20,7 +20,17 @@ echo "  4) SARSA 对比实验 ⭐"
 echo ""
 echo "  === P1 优先级 (新增) ==="
 echo "  5) 多 Agent 协作演示 ⭐"
-echo "  6) Web 可视化 ⭐ NEW"
+echo "  6) Web 可视化 ⭐"
+echo ""
+echo "  === P2 优先级 (新增) ==="
+echo " 13) 实际应用集成 ⭐ NEW"
+echo " 14) 新功能演示 ⭐ NEW"
+echo ""
+echo "  === P3 优先级 (新增) ==="
+echo " 15) 实验对比工具 ⭐ NEW"
+echo " 16) 自动参数调优 ⭐ NEW"
+echo " 17) CLI 命令行工具 ⭐ NEW"
+echo " 18) WebSocket 服务器 ⭐ NEW"
 echo ""
 echo "  === 已有实验 ==="
 echo "  7) 学习曲线可视化"
@@ -100,6 +110,42 @@ case $choice in
         else
             echo "实验报告不存在"
         fi
+        ;;
+    12)
+        echo ""
+        echo "▶ 查看 CLI 帮助..."
+        python3 cli.py --help
+        ;;
+    13)
+        echo ""
+        echo "▶ 运行实际应用集成..."
+        python3 "demo/实际应用集成演示.py"
+        ;;
+    14)
+        echo ""
+        echo "▶ 运行新功能演示..."
+        python3 "demo/新功能演示.py"
+        ;;
+    15)
+        echo ""
+        echo "▶ 运行实验对比工具..."
+        python3 "src/analysis/experiment_comparison.py"
+        ;;
+    16)
+        echo ""
+        echo "▶ 运行自动参数调优..."
+        python3 "src/analysis/auto_tuner.py"
+        ;;
+    17)
+        echo ""
+        echo "▶ 启动 CLI status..."
+        python3 cli.py status
+        ;;
+    18)
+        echo ""
+        echo "▶ 启动 WebSocket 服务器..."
+        echo "按 Ctrl+C 停止"
+        python3 -m src.websocket.server
         ;;
     0)
         echo "退出"
