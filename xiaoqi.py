@@ -74,7 +74,7 @@ def run_interactive():
     bot = ChatBot(ai_instance=ai)
     
     print("💡 提示:")
-    print("   • 直接说目标（如"调研 ComfyUI"）- 我会自主工作")
+    print("   • 直接说目标（如'调研 ComfyUI'）- 我会自主工作")
     print("   • 状态 - 查看我的自主状态")
     print("   • 暂停 - 让我停下")
     print("   • 继续 - 恢复自主运行")
