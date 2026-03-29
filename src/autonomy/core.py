@@ -39,8 +39,8 @@ class AutonomousAI:
         self.files = FileManager()
         self.network = NetworkManager()
         
-        # 交互模块
-        self.chat_bot = ChatBot(name)
+        # 交互模块（传入 self 引用）
+        self.chat_bot = ChatBot(name, ai_instance=self)
         self.tts = TextToSpeech()
         
         # 任务规划模块
