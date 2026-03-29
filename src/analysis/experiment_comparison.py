@@ -98,7 +98,12 @@ class ExperimentComparator:
             round_completed = 0
             
             for task in tasks:
-                agent.add_task(task)
+                agent.add_task(
+                    name=task.name,
+                    priority=task.priority,
+                    estimated_time=task.estimated_time,
+                    description=task.description
+                )
                 result = agent.run_cycle()
                 
                 if result:
