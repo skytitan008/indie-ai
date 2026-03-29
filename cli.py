@@ -19,7 +19,7 @@ from pathlib import Path
 from datetime import datetime
 
 # 添加项目路径
-PROJECT_ROOT = Path(__file__).parent.parent
+PROJECT_ROOT = Path(__file__).parent  # cli.py 就在项目根目录
 sys.path.insert(0, str(PROJECT_ROOT))
 
 
@@ -99,14 +99,6 @@ def cmd_stats(args):
     print("║         📊 Indie AI 统计                               ║")
     print("╚════════════════════════════════════════════════════════╝\n")
     
-    # 实验运行统计
-    try:
-        cursor.execute("SELECT COUNT(*) FROM experiments")
-        exp_count = cursor.fetchone()[0]
-        print(f"📁 实验运行次数：{exp_count}")
-    except:
-        print("📁 实验运行次数：N/A")
-    
     # 任务统计
     try:
         cursor.execute("SELECT COUNT(*) FROM tasks")
@@ -120,16 +112,24 @@ def cmd_stats(args):
         if task_count > 0:
             rate = completed / task_count * 100
             print(f"📈 完成率：{rate:.1f}%")
-    except:
-        print("📋 任务统计：N/A")
+    except Exception as e:
+        print(f"📋 任务统计：N/A ({e})")
     
-    # Q 表统计
+    # 经验统计
     try:
-        cursor.execute("SELECT COUNT(*) FROM q_table")
-        q_count = cursor.fetchone()[0]
-        print(f"🧠 Q 表条目：{q_count}")
-    except:
-        print("🧠 Q 表条目：N/A")
+        cursor.execute("SELECT COUNT(*) FROM experiences")
+        exp_count = cursor.fetchone()[0]
+        print(f"🧠 经验条目：{exp_count}")
+    except Exception as e:
+        print(f"🧠 经验条目：N/A ({e})")
+    
+    # 决策日志统计
+    try:
+        cursor.execute("SELECT COUNT(*) FROM decision_logs")
+        log_count = cursor.fetchone()[0]
+        print(f"📝 决策日志：{log_count}")
+    except Exception as e:
+        print(f"📝 决策日志：N/A ({e})")
     
     conn.close()
     print()

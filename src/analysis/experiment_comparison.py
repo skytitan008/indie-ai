@@ -205,11 +205,11 @@ class ExperimentComparator:
 def create_sample_tasks() -> List[Task]:
     """创建示例任务"""
     return [
-        Task(id="1", name="修复显存", description="修复 ComfyUI 显存溢出", priority=10),
-        Task(id="2", name="调试 pipeline", description="调试视频生成 pipeline", priority=9),
-        Task(id="3", name="优化推理", description="优化模型推理速度", priority=8),
-        Task(id="4", name="测试模板", description="测试新提示词模板", priority=7),
-        Task(id="5", name="整理文档", description="整理项目文档", priority=6),
+        Task(id="1", name="修复显存", description="修复 ComfyUI 显存溢出", priority=10, estimated_time=30),
+        Task(id="2", name="调试 pipeline", description="调试视频生成 pipeline", priority=9, estimated_time=45),
+        Task(id="3", name="优化推理", description="优化模型推理速度", priority=8, estimated_time=60),
+        Task(id="4", name="测试模板", description="测试新提示词模板", priority=7, estimated_time=30),
+        Task(id="5", name="整理文档", description="整理项目文档", priority=6, estimated_time=20),
     ]
 
 
