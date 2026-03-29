@@ -21,6 +21,8 @@ from src.autonomy.learner import AutonomousLearner
 from src.hardware.controller import SystemMonitor, DeviceController, FileManager, NetworkManager
 from src.interaction.chat.conversation import ChatBot, ConversationManager
 from src.interaction.voice.speech import TextToSpeech, VoiceInterface
+from src.planning.task_planner import TaskPlanner, TaskDecomposer, TaskExecutor, TaskPriority
+from src.interaction.chat.code_generator import CodeGenerator
 
 
 class AutonomousAI:
@@ -40,6 +42,14 @@ class AutonomousAI:
         # 交互模块
         self.chat_bot = ChatBot(name)
         self.tts = TextToSpeech()
+        
+        # 任务规划模块
+        self.planner = TaskPlanner()
+        self.decomposer = TaskDecomposer()
+        self.executor = TaskExecutor(self.planner)
+        
+        # 代码生成器
+        self.code_gen = CodeGenerator()
         
         # 状态
         self.mode = "idle"
@@ -209,6 +219,86 @@ class AutonomousAI:
         # 4. 报告状态
         print("4️⃣  状态报告")
         self.show_status()
+    
+    def plan_task(self, task_name: str, description: str = "", priority: str = "medium") -> int:
+        """规划任务"""
+        print(f"\n📋 {self.name} 规划任务：{task_name}")
+        
+        # 转换优先级
+        priority_map = {
+            'critical': TaskPriority.CRITICAL,
+            'high': TaskPriority.HIGH,
+            'medium': TaskPriority.MEDIUM,
+            'low': TaskPriority.LOW
+        }
+        task_priority = priority_map.get(priority.lower(), TaskPriority.MEDIUM)
+        
+        # 分解任务
+        subtasks = self.decomposer.decompose(task_name, description)
+        
+        # 创建主任务
+        total_time = sum(sub.get('estimated_time', 0) for sub in subtasks)
+        main_task_id = self.planner.create_task(
+            name=task_name,
+            description=description,
+            priority=task_priority,
+            estimated_time=total_time
+        )
+        
+        # 创建子任务
+        prev_task_id = None
+        for subtask in subtasks:
+            dependencies = [prev_task_id] if prev_task_id else []
+            subtask_id = self.planner.create_task(
+                name=subtask['name'],
+                description=subtask['description'],
+                estimated_time=subtask['estimated_time'],
+                parent_id=main_task_id,
+                dependencies=dependencies
+            )
+            self.planner.add_subtask(main_task_id, subtask_id)
+            prev_task_id = subtask_id
+        
+        print(f"   ✅ 任务已规划：{task_name}")
+        print(f"   分解为 {len(subtasks)} 个子任务")
+        print(f"   预计总时间：{total_time}分钟")
+        
+        return main_task_id
+    
+    def execute_task(self, task_id: int = None) -> bool:
+        """执行任务"""
+        task = self.executor.execute_next()
+        
+        if not task:
+            print("   ⏸️  没有可执行的任务")
+            return False
+        
+        print(f"   ▶️  执行任务：{task.name}")
+        
+        # 模拟执行
+        import time
+        time.sleep(0.1)
+        
+        # 完成任务
+        self.executor.complete_task(task.id, f"完成{task.name}")
+        print(f"   ✅ 任务完成：{task.name}")
+        
+        return True
+    
+    def get_task_status(self) -> Dict:
+        """获取任务状态"""
+        all_tasks = self.planner.get_all_tasks()
+        
+        status_count = {}
+        for task in all_tasks:
+            status = task.status.value
+            status_count[status] = status_count.get(status, 0) + 1
+        
+        return {
+            'total': len(all_tasks),
+            'by_status': status_count,
+            'ready': len(self.planner.get_ready_tasks())
+        }
 
 
 def demo():
