@@ -2,5 +2,6 @@
 
 from .experiment_comparison import ExperimentComparator
 from .auto_tuner import AutoTuner
+from .task_dependency import TaskDependencyGraph
 
-__all__ = ['ExperimentComparator', 'AutoTuner']
+__all__ = ['ExperimentComparator', 'AutoTuner', 'TaskDependencyGraph']
