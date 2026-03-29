@@ -55,6 +55,10 @@ class AutonomousAI:
         # 自主决策引擎
         self.decision_engine = AutonomousDecisionEngine(ai_instance=self)
         
+        # 自主工作执行器
+        from src.autonomy.worker import AutonomousWorker
+        self.worker = AutonomousWorker()
+        
         # 状态
         self.mode = "idle"  # idle, autonomous, working, learning
         self.current_task = None
@@ -341,6 +345,51 @@ class AutonomousAI:
 {self.decision_engine.execute_action(decision)}"""
         
         return thought
+    
+    def start_autonomous_work(self, goal: str) -> str:
+        """开始真正的自主工作"""
+        # 启动工作执行器
+        self.worker.start_work(goal)
+        self.mode = "working"
+        self.autonomous_mode = True
+        
+        # 创建工作文档
+        self.worker.create_document(
+            "工作目标",
+            f"""
+## 工作目标
+
+{goal}
+
+## 开始时间
+
+{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+## 工作计划
+
+1. 调研分析
+2. 技术方案
+3. 编码实现
+4. 测试验证
+5. 总结报告
+            """
+        )
+        
+        return f"""🚀 开始自主工作：{goal}
+
+📁 工作目录：{self.worker.workspace}
+
+💡 我会真正执行工作并生成文件，你可以:
+   • 输入"状态"查看进度
+   • 输入"工作区"查看生成的文件
+   • 输入"暂停"让我停下
+   • 或者继续做其他事，不用管我"""
+    
+    def show_workspace(self) -> str:
+        """显示工作区"""
+        if self.worker:
+            return self.worker.show_workspace()
+        return "暂无工作区"
     
     def autonomous_loop(self, iterations: int = 5):
         """自主循环（执行多次自主决策）"""

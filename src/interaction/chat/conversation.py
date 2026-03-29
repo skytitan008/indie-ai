@@ -95,6 +95,12 @@ class ChatBot:
                 return self._handle_auto_status()
             return "当前没有任务"
         
+        # 工作区查询
+        elif any(w in t for w in ['工作区', 'workspace', '文件', '生成']):
+            if self.ai and hasattr(self.ai, 'show_workspace'):
+                return self.ai.show_workspace()
+            return "暂无工作区"
+        
         # 暂停
         elif any(w in t for w in ['暂停', 'pause', '停下', '停止']):
             if self.ai and hasattr(self.ai, 'disable_autonomous_mode'):
@@ -313,17 +319,21 @@ class ChatBot:
         return self.responses['coding']
     
     def _handle_auto_execute(self, task_desc: str) -> str:
-        """处理自动执行请求 - 真正的自主！"""
+        """处理自动执行请求 - 真正的自主工作！"""
         try:
             # 1. 规划任务
             if hasattr(self.ai, 'plan_task'):
                 self.ai.plan_task(task_desc, "用户请求", "high")
             
-            # 2. 开启自主模式
+            # 2. 启动真正的自主工作
+            if hasattr(self.ai, 'start_autonomous_work'):
+                return self.ai.start_autonomous_work(task_desc)
+            
+            # 3. 降级：开启自主模式
             if hasattr(self.ai, 'enable_autonomous_mode'):
                 self.ai.enable_autonomous_mode()
             
-            # 3. 执行几次自主行动
+            # 4. 执行几次自主行动
             results = []
             for i in range(3):
                 if hasattr(self.ai, 'think'):
@@ -334,7 +344,7 @@ class ChatBot:
                 import time
                 time.sleep(0.3)
             
-            # 4. 返回结果
+            # 5. 返回结果
             response = f"""🚀 好的！我开始自主工作：{task_desc}
 
 """
