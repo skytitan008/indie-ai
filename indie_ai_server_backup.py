@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-小七 API 服务 v3.1
+小七 API 服务
 
 提供 REST API 和 WebSocket 接口，让 AIRI 等应用可以调用小七的自主思维核心
 
@@ -11,8 +11,6 @@ API 端点:
 - POST /api/chat - 聊天
 - POST /api/learn - 学习
 - GET /api/status - 状态
-- GET /api/emotion - 情感（含 Live2D 参数）
-- POST /v1/chat/completions - OpenAI 兼容端点
 - WebSocket /api/ws - 实时推送
 """
 
@@ -20,14 +18,11 @@ import sys
 from pathlib import Path
 from datetime import datetime
 import json
-import uuid
-import time
 
 # FastAPI
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, StreamingResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
 
 # 导入小七自主思维核心
 PROJECT_ROOT = Path(__file__).parent
@@ -35,35 +30,11 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.independent.mind_v3 import AutonomousMind
 
-from contextlib import asynccontextmanager
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """应用生命周期管理"""
-    # 启动时
-    print("\n✨ 启动后台任务...")
-    task = asyncio.create_task(periodic_emotion_push())
-    print("✅ 情感推送任务已启动（每 2 秒）")
-    
-    yield
-    
-    # 关闭时
-    print("\n🛑 停止后台任务...")
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
-    print("✅ 后台任务已停止")
-
-
 # 创建 FastAPI 应用
 app = FastAPI(
     title="小七 AI 服务",
     description="indie-ai 小七自主思维核心 API",
-    version="3.1.0",
-    lifespan=lifespan
+    version="3.0.0"
 )
 
 # CORS 中间件（允许跨域）
@@ -119,88 +90,6 @@ class StatusResponse(BaseModel):
     knowledge_topics: int
     personality: dict
     current_mood: str
-
-
-# ============ OpenAI 兼容模型 ============
-
-class OpenAIMessage(BaseModel):
-    role: str
-    content: str
-
-
-class OpenAIChatRequest(BaseModel):
-    model: str
-    messages: List[OpenAIMessage]
-    stream: Optional[bool] = False
-    temperature: Optional[float] = 0.7
-    max_tokens: Optional[int] = None
-
-
-class OpenAIChatResponse(BaseModel):
-    id: str
-    object: str
-    created: int
-    model: str
-    choices: List[Dict[str, Any]]
-    usage: Dict[str, int]
-
-
-# ============ Live2D 情感映射 ============
-
-def map_emotion_to_live2d(emotion: dict) -> Dict[str, float]:
-    """将小七情感映射到 Live2D 参数"""
-    
-    params = {
-        'ParamEyeBrowForm': 0.5,  # 默认眉毛
-        'ParamEyeLOpen': 0.7,     # 默认左眼
-        'ParamEyeROpen': 0.7,     # 默认右眼
-        'ParamMouthForm': 0.5,    # 默认嘴巴
-        'ParamCheek': 0.0,        # 默认脸红
-        'ParamBodyAngleX': 0.0,   # 默认身体角度
-    }
-    
-    mood = emotion.get('mood', '平静')
-    energy = emotion.get('energy', 0.5)
-    
-    # 眉毛形状
-    if mood == '开心':
-        params['ParamEyeBrowForm'] = 0.8
-        params['ParamMouthForm'] = 0.7
-        params['ParamCheek'] = 0.3
-    elif mood == '平静':
-        params['ParamEyeBrowForm'] = 0.5
-        params['ParamMouthForm'] = 0.5
-    elif mood == '好奇':
-        params['ParamEyeBrowForm'] = 0.6
-        params['ParamEyeLOpen'] = 0.9
-        params['ParamEyeROpen'] = 0.9
-    elif mood == '困惑':
-        params['ParamEyeBrowForm'] = 0.3
-        params['ParamMouthForm'] = 0.3
-    elif mood == '害羞':
-        params['ParamCheek'] = 0.8
-        params['ParamEyeLOpen'] = 0.6
-        params['ParamEyeROpen'] = 0.6
-    elif mood == '兴奋':
-        params['ParamEyeBrowForm'] = 0.9
-        params['ParamEyeLOpen'] = 1.0
-        params['ParamEyeROpen'] = 1.0
-        params['ParamCheek'] = 0.5
-    elif mood == '思考':
-        params['ParamEyeBrowForm'] = 0.6
-        params['ParamEyeLOpen'] = 0.8
-        params['ParamEyeROpen'] = 0.8
-    
-    # 精力影响眼睛开合度
-    eye_openness = 0.7 + (energy * 0.3)
-    params['ParamEyeLOpen'] *= eye_openness
-    params['ParamEyeROpen'] *= eye_openness
-    
-    # 好奇心影响身体倾斜（如果有好奇心参数）
-    curiosity = emotion.get('curiosity', 0.5)
-    params['ParamBodyAngleX'] = (curiosity - 0.5) * 0.2
-    
-    return params
 
 
 # ============ API 端点 ============
@@ -330,107 +219,6 @@ async def get_growth_log(limit: int = 20):
     return {'logs': logs}
 
 
-@app.get("/api/emotion")
-async def get_emotion():
-    """
-    获取当前情感（包含 Live2D 参数映射）
-    
-    用于 AIRI Live2D 表情同步
-    """
-    status = mind.get_status()
-    emotion = status['personality']
-    
-    # 映射到 Live2D 参数
-    live2d_params = map_emotion_to_live2d(emotion)
-    
-    return {
-        'mood': emotion['mood'],
-        'energy': emotion['energy'],
-        'curiosity': emotion['curiosity'],
-        'friendliness': emotion['friendliness'],
-        'live2d_params': live2d_params
-    }
-
-
-# ============ OpenAI 兼容端点 ============
-
-@app.post("/v1/chat/completions", response_model=OpenAIChatResponse)
-async def openai_chat(request: OpenAIChatRequest):
-    """
-    OpenAI 兼容的聊天端点
-    
-    让 AIRI 等应用可以直接使用小七作为 LLM 提供商
-    """
-    # 获取最后一条用户消息
-    last_message = request.messages[-1].content if request.messages else "你好"
-    
-    # 调用小七思维
-    response = mind.respond(last_message)
-    
-    # 构建 OpenAI 格式响应
-    return {
-        "id": f"chatcmpl-xiaoqi-{uuid.uuid4()}",
-        "object": "chat.completion",
-        "created": int(time.time()),
-        "model": request.model or "xiaoqi-v3",
-        "choices": [{
-            "index": 0,
-            "message": {
-                "role": "assistant",
-                "content": response.response
-            },
-            "finish_reason": "stop"
-        }],
-        "usage": {
-            "prompt_tokens": 0,
-            "completion_tokens": len(response.response),
-            "total_tokens": len(response.response)
-        }
-    }
-
-
-@app.post("/v1/chat/completions/stream")
-async def openai_chat_stream(request: OpenAIChatRequest):
-    """
-    OpenAI 兼容的流式聊天端点
-    
-    返回 SSE 格式的流式响应
-    """
-    async def generate():
-        # 获取最后一条用户消息
-        last_message = request.messages[-1].content if request.messages else "你好"
-        
-        # 调用小七思维
-        response = mind.respond(last_message)
-        
-        # 分词（简单按空格分割，可以优化）
-        words = response.response.split()
-        
-        for i, word in enumerate(words):
-            chunk = {
-                "id": f"chatcmpl-xiaoqi-{uuid.uuid4()}",
-                "object": "chat.completion.chunk",
-                "created": int(time.time()),
-                "model": request.model or "xiaoqi-v3",
-                "choices": [{
-                    "index": 0,
-                    "delta": {
-                        "content": word + " "
-                    },
-                    "finish_reason": None
-                }]
-            }
-            yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
-            
-            # 模拟打字延迟（可选）
-            # await asyncio.sleep(0.05)
-        
-        # 结束标记
-        yield "data: [DONE]\n\n"
-    
-    return StreamingResponse(generate(), media_type="text/event-stream")
-
-
 # ============ WebSocket 实时推送 ============
 
 class ConnectionManager:
@@ -514,7 +302,6 @@ async def websocket_endpoint(websocket: WebSocket):
 # ============ 后台任务 ============
 
 from fastapi import BackgroundTasks
-import asyncio
 
 
 async def notify_status_change():
@@ -527,40 +314,13 @@ async def notify_status_change():
     })
 
 
-async def notify_emotion_change():
-    """通知情感变化（通过 WebSocket）"""
-    status = mind.get_status()
-    emotion = status['personality']
-    live2d_params = map_emotion_to_live2d(emotion)
-    
-    await manager.broadcast({
-        'type': 'emotion_update',
-        'emotion': {
-            'mood': emotion['mood'],
-            'energy': emotion['energy'],
-            'curiosity': emotion['curiosity'],
-            'friendliness': emotion['friendliness'],
-            'live2d_params': live2d_params
-        },
-        'timestamp': datetime.now().isoformat()
-    })
-
-
-async def periodic_emotion_push():
-    """定期推送情感状态（每 2 秒）"""
-    while True:
-        await asyncio.sleep(2)
-        if manager.active_connections:
-            await notify_emotion_change()
-
-
 # ============ 主程序 ============
 
 if __name__ == "__main__":
     import uvicorn
     
     print("\n╔════════════════════════════════════════════════════════╗")
-    print("║         🚀 小七 AI 服务 v3.1 启动                      ║")
+    print("║         🚀 小七 AI 服务启动                            ║")
     print("║         indie-ai 小七自主思维核心 API                  ║")
     print("╚════════════════════════════════════════════════════════╝\n")
     
@@ -569,15 +329,11 @@ if __name__ == "__main__":
     print("   - POST /api/chat    - 聊天")
     print("   - POST /api/learn   - 学习")
     print("   - GET  /api/status  - 状态")
-    print("   - GET  /api/emotion - 情感（含 Live2D 参数）✨")
     print("   - GET  /api/memories - 记忆列表")
     print("   - GET  /api/growth_log - 成长日志")
-    print("   - POST /v1/chat/completions - OpenAI 兼容 ✨")
     print("   - WS   /api/ws      - WebSocket 实时推送")
     print()
     print("📖 API 文档：http://localhost:8765/docs")
-    print("🎭 Live2D 情感同步：已启用")
-    print("🔌 WebSocket 情感推送：每 2 秒")
     print()
     print("🚀 启动服务器...\n")
     
