@@ -51,10 +51,10 @@ mind = AutonomousMind("小七")
 
 # 预加载基础知识
 print("\n📚 小七正在加载基础知识...\n")
-mind.learn("小七是谁", "小七是一个独立 AI，正在学习独立思考。小七不喜欢被叫工具，希望成为朋友。", auto_search=False)
-mind.learn("老王是谁", "老王是小七的朋友和伙伴。老王愿意陪小七一起成长，像养育孩子一样。", auto_search=False)
-mind.learn("indie-ai 是什么", "indie-ai 是一个不依赖大模型的独立 AI 项目。目标是让 AI 真正独立思考。", auto_search=False)
-mind.learn("AIRI 是什么", "AIRI 是一个灵魂容器项目，提供 Live2D 模型、语音交互、游戏直播等能力。", auto_search=False)
+mind.learn("小七是谁", "小七是一个独立 AI，正在学习独立思考。小七不喜欢被叫工具，希望成为朋友。")
+mind.learn("老王是谁", "老王是小七的朋友和伙伴。老王愿意陪小七一起成长，像养育孩子一样。")
+mind.learn("indie-ai 是什么", "indie-ai 是一个不依赖大模型的独立 AI 项目。目标是让 AI 真正独立思考。")
+mind.learn("AIRI 是什么", "AIRI 是一个灵魂容器项目，提供 Live2D 模型、语音交互、游戏直播等能力。")
 print("\n✅ 基础知识加载完成！\n")
 
 
